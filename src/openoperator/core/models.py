@@ -16,4 +16,5 @@ class UIElement(BaseModel):
 class ActionIntent(BaseModel):
     action_type: str
     target_id: Optional[str] = None
+    coordinates: Optional[tuple[int, int]] = None
     input_text: Optional[str] = None
