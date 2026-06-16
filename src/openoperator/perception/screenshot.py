@@ -9,7 +9,7 @@ class ScreenshotEngine:
     Captures screenshots and returns PNG bytes.
     """
 
-    def capture(self) -> bytes:
+    def capture_screen(self) -> bytes:
         with mss() as sct:
             monitor = sct.monitors[1]
 
