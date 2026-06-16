@@ -15,3 +15,4 @@ class ActionController(ABC):
     @abstractmethod
     def type_text(self, text: str) -> bool:
         pass
+        
