@@ -46,6 +46,26 @@ Check:
 * CONTRIBUTING.md
 * ROADMAP.md
 
+
+## Current Status
+
+### Working Components
+
+* Screenshot Engine ✅
+* Mouse Controller ✅
+* Keyboard Controller ✅
+* Core Orchestrator ✅
+* Local Demo ✅
+
+### Upcoming
+
+* OCR Engine
+* Accessibility Tree Support
+* Real Agent Integration
+* Multi-Step Task Execution
+
+
+
 ## License
 
 MIT
