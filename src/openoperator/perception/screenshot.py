@@ -1,10 +1,31 @@
+from io import BytesIO
+
 from mss import mss
+from PIL import Image
 
 
 class ScreenshotEngine:
+    """
+    Captures screenshots and returns PNG bytes.
+    """
+
     def capture(self) -> bytes:
         with mss() as sct:
             monitor = sct.monitors[1]
-            image = sct.grab(monitor)
 
-            return image.rgb
+            screenshot = sct.grab(monitor)
+
+            image = Image.frombytes(
+                "RGB",
+                screenshot.size,
+                screenshot.rgb,
+            )
+
+            buffer = BytesIO()
+
+            image.save(
+                buffer,
+                format="PNG",
+            )
+
+            return buffer.getvalue()
