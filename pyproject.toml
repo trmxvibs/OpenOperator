@@ -14,7 +14,11 @@ dependencies = [
     "mss>=9.0.0",
     "Pillow>=10.0.0",
     "pynput>=1.7.7",
+    "pytesseract>=0.3.10",
 ]
+
+[project.scripts]
+openoperator = "openoperator.cli:main"
 
 [tool.setuptools]
 package-dir = {"" = "src"}

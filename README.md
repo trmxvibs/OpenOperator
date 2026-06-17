@@ -1,21 +1,27 @@
-## Demonstrations
+## Quick Start
 
-### Screenshot Demo
+Install:
 
-Capture the current screen as PNG bytes.
+```bash
+pip install -e .
+```
 
-### Mouse Demo
+Available commands:
 
-Move the mouse cursor programmatically.
+```bash
+openoperator screenshot
 
-### Typing Demo
+openoperator mouse-demo
 
-Type text into any focused application.
+openoperator typing-demo
 
-### Notepad Automation Demo
+openoperator click-type-demo
+```
 
-Automatically type text into Notepad.
+Current Features:
 
-### Click + Type Demo
-
-Move mouse, click a target, and enter text automatically.
+* Screenshot Capture
+* Mouse Control
+* Keyboard Input
+* Automation Demos
+* Command Line Interface
