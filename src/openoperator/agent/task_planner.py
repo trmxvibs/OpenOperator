@@ -33,9 +33,10 @@ class TaskPlan(BaseModel):
 class TaskPlanner:
     """
     Rule-based task planner for OpenOperator MVP.
-    
+
     Currently relies on keyword matching rather than an LLM/VLM to generate
-    action sequences. Designed to be swapped with an AI-driven planner in future iterations.
+    action sequences. Designed to be swapped with an AI-driven planner in
+    future iterations.
     """
 
     def create_plan(self, goal: str) -> TaskPlan:
@@ -49,22 +50,49 @@ class TaskPlanner:
             TaskPlan: A structured sequence of actions.
         """
         logger.debug(f"Creating rule-based plan for goal: '{goal}'")
+
         normalized_goal = goal.lower()
         actions: list[PlannedAction] = []
 
+        # Move action
         if "move" in normalized_goal:
             logger.debug("Detected 'move' intent in goal.")
-            # Defaulting to (0,0) for the MVP rule-based planner
-            actions.append(PlannedAction(action="move", x=0, y=0))
+            actions.append(
+                PlannedAction(
+                    action="move",
+                    x=0,
+                    y=0,
+                )
+            )
 
+        # Click action
         if "click" in normalized_goal:
             logger.debug("Detected 'click' intent in goal.")
-            actions.append(PlannedAction(action="click"))
+            actions.append(
+                PlannedAction(
+                    action="click"
+                )
+            )
 
+        # Type action
         if "type" in normalized_goal:
             logger.debug("Detected 'type' intent in goal.")
-            # Defaulting to a placeholder string since regex/parsing isn't strictly defined for MVP
-            actions.append(PlannedAction(action="type", text="hello world"))
+
+            type_index = normalized_goal.find("type")
+
+            # Preserve original casing from user's goal
+            extracted_text = goal[type_index + 4 :].strip()
+
+            # Fallback text
+            if not extracted_text:
+                extracted_text = "hello world"
+
+            actions.append(
+                PlannedAction(
+                    action="type",
+                    text=extracted_text,
+                )
+            )
 
         if not actions:
             logger.warning(
@@ -72,9 +100,11 @@ class TaskPlanner:
                 f"found in goal: '{goal}'. Plan will be empty."
             )
 
-        logger.info(f"Successfully generated TaskPlan with {len(actions)} actions.")
-        
+        logger.info(
+            f"Successfully generated TaskPlan with {len(actions)} actions."
+        )
+
         return TaskPlan(
             goal=goal,
-            actions=actions
+            actions=actions,
         )
