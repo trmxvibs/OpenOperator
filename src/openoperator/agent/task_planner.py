@@ -75,17 +75,14 @@ class TaskPlanner:
             )
 
         # Type action
-        if "type" in normalized_goal:
+        if normalized_goal.startswith("type"):
             logger.debug("Detected 'type' intent in goal.")
 
-            type_index = normalized_goal.find("type")
+            _, _, typed_text = goal.partition(" ")
 
-            # Preserve original casing from user's goal
-            extracted_text = goal[type_index + 4 :].strip()
-
-            # Fallback text
-            if not extracted_text:
-                extracted_text = "hello world"
+            # Preserve original casing from user's goal.
+            # Empty text is allowed and no longer replaced with a placeholder.
+            extracted_text = typed_text.strip()
 
             actions.append(
                 PlannedAction(
