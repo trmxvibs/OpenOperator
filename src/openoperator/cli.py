@@ -2,7 +2,7 @@
 Command Line Interface for OpenOperator.
 
 This module provides the entry point for the `openoperator` command,
-routing user commands to the appropriate demonstration functions.
+routing user commands to the appropriate demonstration functions or the interactive shell.
 """
 
 import argparse
@@ -17,12 +17,11 @@ from openoperator.demos import (
 )
 from openoperator.perception.ocr import OCREngine
 from openoperator.perception.screenshot import ScreenshotEngine
+from openoperator.shell import InteractiveShell
 
 
 def run_ocr_demo() -> None:
-    """
-    Demonstrates capturing the screen and extracting text via OCR.
-    """
+    """Demonstrates capturing the screen and extracting text via OCR."""
     logger = logging.getLogger(__name__)
     logger.info("--- Running OCR Demo ---")
     
@@ -48,10 +47,17 @@ def run_ocr_demo() -> None:
     logger.info("OCR Demo complete.\n")
 
 
+def run_interactive_shell() -> None:
+    """Starts the persistent interactive natural language shell."""
+    shell = InteractiveShell()
+    shell.cmdloop()
+
+
 def configure_logging() -> None:
     """Configures the standard logging format for CLI outputs."""
+    # Set to WARNING to prevent verbose logs from cluttering the interactive prompt
     logging.basicConfig(
-        level=logging.INFO,
+        level=logging.WARNING,
         format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
     )
@@ -106,6 +112,12 @@ def create_parser() -> argparse.ArgumentParser:
     )
     ocr_parser.set_defaults(func=run_ocr_demo)
 
+    shell_parser = subparsers.add_parser(
+        "shell",
+        help="Starts the persistent interactive natural language shell.",
+    )
+    shell_parser.set_defaults(func=run_interactive_shell)
+
     return parser
 
 
@@ -123,12 +135,19 @@ def main() -> int:
     args = parser.parse_args()
 
     try:
-        logger.info(f"Executing command: {args.command}")
+        # We don't log "Executing command" for the shell as it has its own UI
+        if args.command != "shell":
+            logger.setLevel(logging.INFO)
+            logger.info(f"Executing command: {args.command}")
+            
         args.func()
-        logger.info(f"Command '{args.command}' completed successfully.")
+        
+        if args.command != "shell":
+            logger.info(f"Command '{args.command}' completed successfully.")
+            
         return 0
     except KeyboardInterrupt:
-        logger.info("Execution interrupted by user.")
+        print("\nExecution interrupted by user.")
         return 0
     except Exception as e:
         logger.error(f"Execution failed during '{args.command}': {e}", exc_info=True)
