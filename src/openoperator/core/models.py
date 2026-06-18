@@ -1,6 +1,24 @@
 from pydantic import BaseModel
 
 
+# --------------------------------------------------
+# Legacy Agent Models
+# --------------------------------------------------
+
+class ActionIntent(BaseModel):
+    """
+    Legacy action model used by AgentBrain and orchestrator tests.
+    """
+
+    action: str
+    target: str | None = None
+    text: str | None = None
+
+
+# --------------------------------------------------
+# Vision Models
+# --------------------------------------------------
+
 class BoundingBox(BaseModel):
     x: int
     y: int

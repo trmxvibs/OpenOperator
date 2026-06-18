@@ -10,6 +10,9 @@ class ScreenshotEngine:
     """
 
     def capture_screen(self) -> bytes:
+        """
+        Capture the primary monitor and return PNG bytes.
+        """
         with mss() as sct:
             monitor = sct.monitors[1]
 
@@ -29,3 +32,12 @@ class ScreenshotEngine:
             )
 
             return buffer.getvalue()
+
+    def capture(self) -> bytes:
+        """
+        Backward-compatible alias for legacy tests and modules.
+
+        Returns:
+            bytes: PNG image bytes.
+        """
+        return self.capture_screen()
