@@ -1,20 +1,24 @@
-from typing import Optional
-
 from pydantic import BaseModel
 
 
-class UIElement(BaseModel):
-    id: str
-    label: str
+class BoundingBox(BaseModel):
+    """
+    Spatial boundaries of a detected UI element.
+    """
+
     x: int
     y: int
     width: int
     height: int
-    element_type: str
 
 
-class ActionIntent(BaseModel):
-    action_type: str
-    target_id: Optional[str] = None
-    coordinates: Optional[tuple[int, int]] = None
-    input_text: Optional[str] = None
+class UITarget(BaseModel):
+    """
+    Represents a detected UI target on screen.
+    """
+
+    text: str
+    box: BoundingBox
+    center_x: int
+    center_y: int
+    confidence: float
