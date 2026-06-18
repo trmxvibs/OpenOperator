@@ -1,11 +1,5 @@
-"""
-Task planner module for OpenOperator.
-
-This module provides a rule-based MVP planner that parses natural language
-goals and translates them into a structured sequence of actionable steps.
-"""
-
 import logging
+import re
 
 from pydantic import BaseModel
 
@@ -13,9 +7,6 @@ logger = logging.getLogger(__name__)
 
 
 class PlannedAction(BaseModel):
-    """
-    Structured data model representing a single deterministic action.
-    """
     action: str
     x: int | None = None
     y: int | None = None
@@ -23,79 +14,60 @@ class PlannedAction(BaseModel):
 
 
 class TaskPlan(BaseModel):
-    """
-    Structured data model representing a complete plan to achieve a goal.
-    """
     goal: str
     actions: list[PlannedAction]
 
 
 class TaskPlanner:
-    """
-    Rule-based task planner for OpenOperator MVP.
-
-    Currently relies on keyword matching rather than an LLM/VLM to generate
-    action sequences. Designed to be swapped with an AI-driven planner in
-    future iterations.
-    """
 
     def create_plan(self, goal: str) -> TaskPlan:
-        """
-        Creates a sequential task plan based on keyword detection in the goal string.
+        logger.debug(f"Creating plan for goal: '{goal}'")
 
-        Args:
-            goal (str): The natural language instruction from the user.
-
-        Returns:
-            TaskPlan: A structured sequence of actions.
-        """
-        logger.debug(f"Creating rule-based plan for goal: '{goal}'")
-
-        normalized_goal = goal.lower()
         actions: list[PlannedAction] = []
 
-        # Move action
-        if "move" in normalized_goal:
-            logger.debug("Detected 'move' intent in goal.")
-            actions.append(
-                PlannedAction(
-                    action="move",
-                    x=0,
-                    y=0,
+        pattern = re.compile(
+            r"\b(move|click|type)\b(.*?)(?=\b(?:move|click|type)\b|$)",
+            re.IGNORECASE,
+        )
+
+        matches = pattern.finditer(goal)
+
+        for match in matches:
+            action_type = match.group(1).lower()
+            remainder = match.group(2).strip()
+
+            if action_type == "move":
+                coords = re.findall(r"\d+", remainder)
+
+                if len(coords) >= 2:
+                    x = int(coords[0])
+                    y = int(coords[1])
+                else:
+                    x = 500
+                    y = 500
+
+                actions.append(
+                    PlannedAction(
+                        action="move",
+                        x=x,
+                        y=y,
+                    )
                 )
-            )
 
-        # Click action
-        if "click" in normalized_goal:
-            logger.debug("Detected 'click' intent in goal.")
-            actions.append(
-                PlannedAction(
-                    action="click"
+            elif action_type == "click":
+                actions.append(
+                    PlannedAction(
+                        action="click"
+                    )
                 )
-            )
 
-        # Type action
-        if normalized_goal.startswith("type"):
-            logger.debug("Detected 'type' intent in goal.")
-
-            _, _, typed_text = goal.partition(" ")
-
-            # Preserve original casing from user's goal.
-            # Empty text is allowed and no longer replaced with a placeholder.
-            extracted_text = typed_text.strip()
-
-            actions.append(
-                PlannedAction(
-                    action="type",
-                    text=extracted_text,
+            elif action_type == "type":
+                actions.append(
+                    PlannedAction(
+                        action="type",
+                        text=remainder.strip(),
+                    )
                 )
-            )
-
-        if not actions:
-            logger.warning(
-                f"No supported action keywords ('move', 'click', 'type') "
-                f"found in goal: '{goal}'. Plan will be empty."
-            )
 
         logger.info(
             f"Successfully generated TaskPlan with {len(actions)} actions."

@@ -18,8 +18,14 @@ class PlanExecutor:
         self.mouse = mouse_controller or MouseActionController()
         self.keyboard = keyboard_controller or KeyboardActionController()
 
-    def execute(self, plan: TaskPlan) -> None:
-        logger.info(f"Starting execution of TaskPlan for goal: '{plan.goal}'")
+    def execute(self, plan: TaskPlan) -> bool:
+        logger.info(
+            f"Starting execution of TaskPlan for goal: '{plan.goal}'"
+        )
+
+        if not plan.actions:
+            logger.warning("Plan contains no actions.")
+            return False
 
         for index, action_item in enumerate(plan.actions, start=1):
             action_type = action_item.action.lower()
@@ -28,6 +34,7 @@ class PlanExecutor:
                 if action_type == "move":
                     x = action_item.x if action_item.x is not None else 0
                     y = action_item.y if action_item.y is not None else 0
+
                     self.mouse.move_mouse(x, y)
 
                 elif action_type == "click":
@@ -35,16 +42,25 @@ class PlanExecutor:
 
                 elif action_type == "type":
                     text_to_type = action_item.text or ""
+
                     if text_to_type:
                         self.keyboard.type_text(text_to_type)
 
                 else:
-                    logger.warning(f"Unsupported action: {action_type}")
+                    logger.warning(
+                        f"Unsupported action: {action_type}"
+                    )
 
             except Exception as e:
                 logger.error(
                     f"Failed to execute step {index}: {e}",
                     exc_info=True,
                 )
+                return False
 
         logger.info("TaskPlan execution completed.")
+
+        return True
+        
+        
+        
