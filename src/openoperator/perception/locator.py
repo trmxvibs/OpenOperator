@@ -10,11 +10,15 @@ import difflib
 import io
 import logging
 import re
+import time
 from typing import Any, Dict, List, Tuple
+
+from openoperator.config import MIN_CONFIDENCE, RETRY_DELAY, MAX_RETRIES
 
 import pytesseract
 from PIL import Image, UnidentifiedImageError
 from pydantic import BaseModel
+
 
 from openoperator.core.models import BoundingBox, UITarget
 
@@ -26,7 +30,7 @@ class OcrToken(BaseModel):
     text: str
     left: int
     top: int
-    width: int
+    width: int      
     height: int
     conf: float
 
@@ -226,3 +230,4 @@ class TextLocatorEngine:
                 unique_targets.append(target)
                 
         return unique_targets
+   

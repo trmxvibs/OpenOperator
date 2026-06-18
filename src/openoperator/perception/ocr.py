@@ -7,9 +7,12 @@ to extract raw text from screen captures or UI elements.
 
 import io
 import logging
+import time
 
 import pytesseract
 from PIL import Image, UnidentifiedImageError
+
+from openoperator.config import RETRY_DELAY, MAX_RETRIES
 
 logger = logging.getLogger(__name__)
 
@@ -34,6 +37,7 @@ class OCREngine:
     def extract_text(self, image_bytes: bytes) -> str:
         """
         Extracts text from the provided image bytes using OCR.
+        Reintenta MAX_RETRIES veces si el resultado está vacío.
 
         Args:
             image_bytes (bytes): The raw image data (e.g., PNG, JPEG bytes).
@@ -46,24 +50,32 @@ class OCREngine:
             logger.warning("Empty image bytes provided to OCR engine.")
             return ""
 
-        try:
-            image = Image.open(io.BytesIO(image_bytes))
-            
-            if image.mode not in ("RGB", "L", "RGBA"):
-                image = image.convert("RGB")
-                
-            text = pytesseract.image_to_string(image)
-            return text.strip()
-            
-        except UnidentifiedImageError:
-            logger.error("Failed to extract text: Provided bytes are not a valid image format.")
-            return ""
-        except pytesseract.TesseractNotFoundError:
-            logger.error(
-                "Tesseract is not installed or not in your PATH. "
-                "Please install Tesseract-OCR to use the OCREngine."
-            )
-            return ""
-        except Exception as e:
-            logger.error(f"Unexpected error during OCR extraction: {e}", exc_info=True)
-            return ""
+        for intento in range(MAX_RETRIES):
+            try:
+                image = Image.open(io.BytesIO(image_bytes))
+
+                if image.mode not in ("RGB", "L", "RGBA"):
+                    image = image.convert("RGB")
+
+                text = pytesseract.image_to_string(image)
+                if text.strip():
+                    return text.strip()
+
+                logger.warning(f"OCR resultó vacío, reintento {intento + 1}/{MAX_RETRIES}")
+
+            except UnidentifiedImageError:
+                logger.error("Failed to extract text: Provided bytes are not a valid image format.")
+                return ""
+            except pytesseract.TesseractNotFoundError:
+                logger.error(
+                    "Tesseract is not installed or not in your PATH. "
+                    "Please install Tesseract-OCR to use the OCREngine."
+                )
+                return ""
+            except Exception as e:
+                logger.error(f"Unexpected error during OCR extraction: {e}", exc_info=True)
+
+            if intento < MAX_RETRIES - 1:
+                time.sleep(RETRY_DELAY)
+
+        return ""

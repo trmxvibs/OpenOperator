@@ -82,3 +82,5 @@ class ScreenAnalyzer:
         except Exception as e:
             logger.error(f"Failed to analyze screen: {e}", exc_info=True)
             return ScreenAnalysis(text="", word_count=0, line_count=0)
+        
+            
