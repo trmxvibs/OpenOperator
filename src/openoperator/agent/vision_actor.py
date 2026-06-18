@@ -32,6 +32,10 @@ class VisionActor:
 
         image_bytes = self.screenshot.capture_screen()
 
+        if not image_bytes:
+            logger.warning("Screen capture failed.")
+            return False
+
         targets = self.locator.find_text_targets(
             image_bytes=image_bytes,
             search_text=target_text,
@@ -44,6 +48,11 @@ class VisionActor:
             return False
 
         best_target = targets[0]
+
+        logger.info(
+            f"Matched text='{best_target.text}' "
+            f"confidence={best_target.confidence}"
+        )
 
         logger.info(
             f"Target found at "

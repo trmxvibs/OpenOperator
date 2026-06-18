@@ -27,7 +27,7 @@ def main() -> None:
         mouse_controller=mouse,
     )
 
-    target_text = "Notebooks"
+    target_text = "Gemini"
 
     logger.info(
         f"Demo starts in 5 seconds. "
