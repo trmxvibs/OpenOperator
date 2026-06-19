@@ -52,7 +52,7 @@ class InteractiveShell:
         print("Examples:")
         print("  - switch to Notepad")
         print("  - click File and type Hello World")
-        print("  - type OpenOperator")
+        print("  - memory (Displays current session memory)")
         print("Type 'exit' or 'quit' to close the shell.")
         print("-" * 60 + "\n")
 
@@ -71,8 +71,20 @@ class InteractiveShell:
             if user_input.lower() in ("exit", "quit"):
                 print("Goodbye!")
                 break
+                
+            if user_input.lower() == "memory":
+                self.display_memory()
+                continue
 
             self.handle_command(user_input)
+
+    def display_memory(self) -> None:
+        """Outputs the agent's current session memory context to the user."""
+        mem = self.runner.memory.get_memory()
+        print("\nCurrent Session Memory")
+        print(f"Last Window: {mem.get('last_window') or 'None'}")
+        print(f"Last Click: {mem.get('last_click') or 'None'}")
+        print(f"Last Typed: {mem.get('last_typed') or 'None'}\n")
 
     def handle_command(self, user_input: str) -> None:
         """

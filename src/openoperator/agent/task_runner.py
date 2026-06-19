@@ -3,6 +3,7 @@ Task runner module for OpenOperator Vision Planning.
 
 This module provides the execution orchestration layer. It accepts a compiled
 VisionTaskPlan and routes each discrete step to the appropriate OS or Vision subsystem.
+Includes Action Memory integration to maintain state context across steps.
 """
 
 import logging
@@ -11,6 +12,7 @@ from typing import Optional
 
 from openoperator.action.keyboard import KeyboardActionController
 from openoperator.action.window_controller import WindowController
+from openoperator.agent.action_memory_manager import ActionMemoryManager
 from openoperator.agent.vision_actor import VisionActor
 from openoperator.agent.vision_models import VisionActionType, VisionTaskPlan
 from openoperator.core.verification import VerificationEngine
@@ -23,7 +25,7 @@ logger = logging.getLogger(__name__)
 class TaskRunner:
     """
     Executes a compiled VisionTaskPlan by routing actions to specific hardware,
-    OS, and perception controllers.
+    OS, and perception controllers, while maintaining an active session memory.
     """
 
     def __init__(
@@ -34,6 +36,7 @@ class TaskRunner:
         screenshot_engine: Optional[ScreenshotEngine] = None,
         ocr_engine: Optional[OCREngine] = None,
         verification_engine: Optional[VerificationEngine] = None,
+        action_memory_manager: Optional[ActionMemoryManager] = None,
     ) -> None:
         """
         Initializes the TaskRunner with required subsystems using dependency injection.
@@ -45,6 +48,7 @@ class TaskRunner:
         self.screenshot = screenshot_engine or ScreenshotEngine()
         self.ocr = ocr_engine or OCREngine()
         self.verification = verification_engine or VerificationEngine()
+        self.memory = action_memory_manager or ActionMemoryManager()
 
     def execute_plan(self, plan: VisionTaskPlan, delay_between_steps: float = 1.0) -> bool:
         """
@@ -80,18 +84,24 @@ class TaskRunner:
                         logger.error("FOCUS_WINDOW requires 'target_element'.")
                         return False
                     success = self.window.focus_window_by_title(step.target_element)
+                    if success:
+                        self.memory.remember_window(step.target_element)
 
                 elif step.action_type == VisionActionType.CLICK_TEXT:
                     if not step.target_element:
                         logger.error("CLICK_TEXT requires 'target_element'.")
                         return False
                     success = self.actor.click_text(step.target_element)
+                    if success:
+                        self.memory.remember_click(step.target_element)
 
                 elif step.action_type == VisionActionType.TYPE_TEXT:
                     if not step.input_data:
                         logger.error("TYPE_TEXT requires 'input_data'.")
                         return False
                     success = self.keyboard.type_text(step.input_data)
+                    if success:
+                        self.memory.remember_type(step.input_data)
 
                 elif step.action_type == VisionActionType.VERIFY_STATE:
                     if not step.input_data:
