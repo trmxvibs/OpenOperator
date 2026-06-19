@@ -77,3 +77,31 @@ class ActionMemoryManager:
         self.last_typed = None
         self.action_history.clear()
         logger.debug("Action memory cleared.")
+
+    def export_state(self) -> Dict[str, Any]:
+        """
+        Exports the current memory state.
+        
+        Returns:
+            Dict[str, Any]: A dictionary representation of the memory state.
+        """
+        return {
+            "last_window": self.last_window,
+            "last_click": self.last_click,
+            "last_typed": self.last_typed,
+            "action_history": self.action_history.copy(),
+        }
+
+    def import_state(self, state: Dict[str, Any]) -> None:
+        """
+        Imports a previously exported memory state, overwriting current memory.
+        
+        Args:
+            state (Dict[str, Any]): The memory state to restore.
+        """
+        self.last_window = state.get("last_window")
+        self.last_click = state.get("last_click")
+        self.last_typed = state.get("last_typed")
+        # Ensure we are copying the list so we don't accidentally link references
+        self.action_history = state.get("action_history", []).copy()
+        logger.debug("Action memory state imported successfully.")
