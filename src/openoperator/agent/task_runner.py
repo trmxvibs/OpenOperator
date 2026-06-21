@@ -84,7 +84,7 @@ class TaskRunner:
                         logger.error("FOCUS_WINDOW requires 'target_element'.")
                         return False
                     success = self.window.focus_window_by_title(step.target_element)
-                    if success:
+                    if success and self.memory is not None:
                         self.memory.remember_window(step.target_element)
 
                 elif step.action_type == VisionActionType.CLICK_TEXT:
@@ -92,7 +92,7 @@ class TaskRunner:
                         logger.error("CLICK_TEXT requires 'target_element'.")
                         return False
                     success = self.actor.click_text(step.target_element)
-                    if success:
+                    if success and self.memory is not None:
                         self.memory.remember_click(step.target_element)
 
                 elif step.action_type == VisionActionType.TYPE_TEXT:
@@ -100,7 +100,7 @@ class TaskRunner:
                         logger.error("TYPE_TEXT requires 'input_data'.")
                         return False
                     success = self.keyboard.type_text(step.input_data)
-                    if success:
+                    if success and self.memory is not None:
                         self.memory.remember_type(step.input_data)
 
                 elif step.action_type == VisionActionType.VERIFY_STATE:
