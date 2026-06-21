@@ -1,13 +1,12 @@
-
 <div align="center">
 
 # OpenOperator
 
-**An open-source vision-guided desktop automation framework that combines OCR, GUI interaction, natural language planning, and task execution.**
+**An open-source vision-guided desktop automation framework that combines OCR, GUI interaction, natural language planning, and autonomous task execution.**
 
 [![Python 3.13](https://img.shields.io/badge/Python-3.13-blue.svg)](https://www.python.org/downloads/release/python-3130/)
 [![Platform](https://img.shields.io/badge/Platform-Windows-lightgrey.svg)]()
-[![Tests](https://img.shields.io/badge/Tests-47%2F47%20Passing-brightgreen.svg)]()
+[![Tests](https://img.shields.io/badge/Tests-78%2F78%20Passing-brightgreen.svg)]()
 [![License](https://img.shields.io/badge/License-MIT-green.svg)]()
 [![Development Status](https://img.shields.io/badge/Status-Active%20Development-orange.svg)]()
 
@@ -15,10 +14,9 @@
 
 ---
 
-
 ## 📖 About OpenOperator
 
-OpenOperator is a powerful, locally-run desktop automation framework designed for Windows. It bridges the gap between natural language intent and physical desktop execution. By utilizing OCR for screen perception and intelligent plan compilation, OpenOperator can locate UI elements, focus windows, and interact with your desktop natively—all driven by human-readable commands.
+OpenOperator is a powerful, locally-run desktop automation framework designed for Windows. It bridges the gap between natural language intent and physical desktop execution. By utilizing OCR for screen perception, persistent action memory, and an autonomous goal-oriented loop, OpenOperator can locate UI elements, focus windows, and interact with your desktop natively—all driven by human-readable commands.
 
 ## ✨ Features
 
@@ -28,141 +26,143 @@ OpenOperator is built on a modular architecture, breaking down autonomous execut
 | :--- | :--- |
 | **👁️ Perception** | Screenshot Engine, OCR Engine, Vision Text Detection, Fuzzy OCR Matching, Vision Guided Click Target Detection |
 | **🕹️ Action** | Mouse Controller, Keyboard Controller, Window Controller, Window Focus Automation |
-| **🧠 Planning** | Task Planner, Intent Parser, Plan Compiler, Intelligent Planner, Natural Language Planning |
-| **⚙️ Execution** | Vision Actor, Vision Task Executor, Task Runner, Autonomous Task Execution |
+| **🧠 Planning** | Task Planner, Intent Parser, Context-Aware Follow-Up Commands, Intelligent Planner, Natural Language Planning |
+| **⚙️ Execution** | Vision Actor, Vision Task Executor, Task Runner, Goal-Oriented Agent Loop |
+| **💾 Memory** | ActionMemoryManager, Persistent MemoryStorage (Auto-Save/Load) |
 | **✅ Verification**| Verification Engine, Screen State Validation, OCR Verification |
-| **💻 Interface** | CLI Interface, Interactive Shell, Natural Language Commands |
+| **💻 Interface** | CLI Interface, Interactive REPL Shell, Natural Language Commands |
 
-## 🚀 Installation
+## 🏗️ Architecture
 
-**Prerequisites:**
-* Windows Operating System
-* Python 3.13+
+OpenOperator enforces a strict separation of concerns between "seeing," "thinking," and "doing."
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/trmxvibs/OpenOperator
-   cd OpenOperator
-
+```python
+OpenOperator Framework
+│
+├── Interface Layer
+│   ├── Interactive Shell (REPL)
+│   └── CLI (Demos & Execution)
+│
+├── Agent Layer (The Brain)
+│   ├── Agent Loop (Goal-Oriented Execution)
+│   ├── Vision Intent Parser (NLP & Context Inference)
+│   ├── Task Runner (Execution Router)
+│   └── Action Memory Manager (Session Context)
+│
+├── Action Layer (The Hands)
+│   ├── Window Controller (Focus/Manage)
+│   ├── Keyboard Controller (Type)
+│   └── Mouse Controller / Vision Actor (Click)
+│
+├── Perception Layer (The Eyes)
+│   ├── Screenshot Engine (Capture)
+│   └── OCR Engine (Extract Text)
+│
+└── Storage Layer
+    └── Memory Storage (Persistent JSON State)
 ```
 
-2. Create and activate a virtual environment (recommended):
-```bash
+# 🚀 Installation
+Prerequisites:
+
+Windows Operating System
+
+Python 3.13+
+
+## Clone the repository:
+
+```Bash
+git clone https://github.com/trmxvibs/OpenOperator
+cd OpenOperator
+```
+## Create and activate a virtual environment (recommended):
+
+```Bash
 python -m venv venv
 .\venv\Scripts\activate
 
 ```
+## Install the package and dependencies:
 
-
-3. Install the package and dependencies:
-```bash
+```Bash
 pip install -e .
 
 ```
+# 💡 Usage
+OpenOperator provides a persistent Interactive Shell (REPL) that allows you to chain natural language commands continuously, leveraging persistent memory to infer context.
 
-
-
-## 💡 Usage
-
-OpenOperator provides a persistent Interactive Shell (REPL) that allows you to chain natural language commands continuously.
-
-### Starting the Interactive Shell
-
-```bash
+Starting the Interactive Shell
+```Bash
 python src/openoperator/cli.py shell
+```
+## Example Commands
+Once inside the interactive shell, you can issue direct, natural language commands. The agent remembers your last actions.
+
+Context-Aware Follow-Up Execution:
 
 ```
+OpenOperator > open Notepad
+[*] Executing plan with 1 steps...
+[+] Sequence completed successfully.
 
-### Example Commands
-
-Once inside the interactive shell, you can issue direct, natural language commands:
-
-**Step-by-step Execution:**
-
-```text
-OpenOperator > switch to Notepad
-OpenOperator > click File
 OpenOperator > type Hello World
-OpenOperator > verify Hello
+[*] Executing plan with 2 steps... (Infers 'Notepad' from memory)
+[+] Sequence completed successfully.
+
+OpenOperator > click File
+[*] Executing plan with 2 steps... (Infers 'Notepad' from memory)
+[+] Sequence completed successfully.
+Checking Persistent Memory:
 
 ```
 
-**Compound Natural Language Planning:**
+## OpenOperator > memory
+```
+Current Session Memory
+Last Window: Notepad
+Last Click: File
+Last Typed: Hello World
+Goal-Oriented Multi-Step Planning:
 
-```text
 OpenOperator > open notepad and type hello world
 OpenOperator > switch to chrome and click search and type OpenOperator
-OpenOperator > open notepad and click file and verify file
-
 ```
 
-## 🏗️ Architecture & Major Components
-
-OpenOperator is structured to enforce separation of concerns between "seeing," "thinking," and "doing."
-
-* **`ScreenshotEngine`**: Captures the current desktop state as PNG bytes.
-* **`OCREngine`**: Extracts raw text from screenshots.
-* **`VisionActor`**: Locates specific text coordinates on screen and executes precise mouse interactions.
-* **`WindowController`**: Interfaces with the OS to find, focus, and manage desktop windows.
-* **`VisionIntentParser`**: Analyzes natural language instructions and translates them into structured action intents.
-* **`VisionPlanCompiler`**: Validates parsed intents and compiles them into a strictly typed execution graph.
-* **`IntelligentPlanner`**: A higher-level abstraction combining both the Intent Parser and Plan Compiler.
-* **`TaskRunner`**: Iterates through compiled plans and routes actions to specific hardware/OS controllers.
-* **`VisionTaskExecutor`**: Orchestrates the end-to-end flow: Focus Window → Click Target → Type Text → Verify Result.
-* **`InteractiveShell`**: The user-facing REPL interface for seamless natural language automation.
-
-### Directory Structure
-
-```text
-OpenOperator/
-├── docs/                 # Documentation and architecture designs
-├── examples/             # Standalone demo scripts for specific components
-├── src/
-│   └── openoperator/
-│       ├── action/       # Keyboard, Mouse, and Window controllers
-│       ├── agent/        # Planners, Parsers, Compilers, and Task Runners
-│       ├── core/         # Verification and Action Memory
-│       ├── perception/   # OCR, Locators, and Screenshot engines
-│       ├── cli.py        # Main CLI entry point
-│       └── shell.py      # Interactive REPL shell
-└── tests/                # Comprehensive unit testing suite
-
-```
-
-## 🧪 Testing
-
-OpenOperator maintains a strict testing standard. Currently, **47/47 unit tests are passing**, ensuring the stability of the core engines, planners, controllers, and the interactive shell.
+# 🧪 Testing
+OpenOperator maintains a strict Test-Driven Development (TDD) standard. Currently, 78/78 unit tests are passing, ensuring the stability of the core engines, memory systems, context-aware parsers, and the agent loop.
 
 To run the test suite locally:
 
-```bash
+```Bash
 pytest tests/
-
 ```
 
 ## 🗺️ Roadmap
 
-OpenOperator is actively under development. We are currently tracking the following major milestones:
+- OpenOperator is actively under development. Upcoming milestones include:
 
-* [ ] **Issue #28:** Action Memory Integration
-* [ ] **Issue #29:** Context Aware Follow-up Commands
-* [ ] **Issue #30:** Vision Retry Strategy
-* [ ] **Issue #31:** Multi-Step Autonomous Task Execution
-* [ ] **Issue #32:** Documentation and Examples Expansion
+[ ] Advanced Vision Retry Strategies: Implementing self-healing fallback loops if a target is not found.
+
+[ ] LLM Integration Layer: Transitioning from Regex-based NLP parsing to a pluggable local/remote LLM intent parser.
+
+[ ] Cross-Platform Support: Expanding Window and OS controllers to support macOS and Linux.
+
+[ ] Dynamic UI Parsing: Extracting structured JSON UI trees from raw OCR data.
 
 ## 🤝 Contributing
+Contributions are what make the open-source community such an amazing place to learn, inspire, and create. Any contributions you make are greatly appreciated.
 
-Contributions are what make the open-source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+## Fork the Project
 
-1. Fork the Project
-2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the Branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+Create your Feature Branch (git checkout -b feature/AmazingFeature)
 
-*Please ensure all tests pass (`pytest`) before submitting a pull request.*
+Commit your Changes (git commit -m 'Add some AmazingFeature')
+
+Push to the Branch (git push origin feature/AmazingFeature)
+
+## Open a Pull Request
+
+Please ensure all tests pass (pytest) before submitting a pull request.
 
 ## 📄 License
-
-Distributed under the MIT License. See `LICENSE` for more information.
-
+Distributed under the MIT License. See LICENSE for more information.
