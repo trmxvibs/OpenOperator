@@ -165,4 +165,4 @@ Push to the Branch (git push origin feature/AmazingFeature)
 Please ensure all tests pass (pytest) before submitting a pull request.
 
 ## 📄 License
-Distributed under the MIT License. See LICENSE for more information.
+See LICENSE for more information.
