@@ -95,6 +95,30 @@ Starting the Interactive Shell
 ```Bash
 python src/openoperator/cli.py shell
 ```
+
+## Integration Testing
+
+OpenOperator includes real Windows integration tests.
+
+Example:
+
+pytest tests/integration/test_notepad_workflow.py -v
+
+This test:
+
+- Launches Notepad
+- Focuses the window
+- Types text
+- Uses OCR verification
+- Cleans up automatically
+
+Requirements:
+
+- Windows
+- Tesseract OCR installed
+
+
+
 ## Example Commands
 Once inside the interactive shell, you can issue direct, natural language commands. The agent remembers your last actions.
 
