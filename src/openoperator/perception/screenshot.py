@@ -1,6 +1,6 @@
 from io import BytesIO
 
-from mss import mss
+from mss import MSS
 from PIL import Image
 
 
@@ -13,7 +13,7 @@ class ScreenshotEngine:
         """
         Capture the primary monitor and return PNG bytes.
         """
-        with mss() as sct:
+        with MSS() as sct:
             monitor = sct.monitors[1]
 
             screenshot = sct.grab(monitor)
