@@ -1,4 +1,3 @@
-from openoperator.agent.dummy import DummyAgent
 from openoperator.core.orchestrator import OpenOperator
 from openoperator.perception.screenshot import ScreenshotEngine
 
@@ -15,12 +14,18 @@ class MockController:
         return True
 
 
+class MockAgent:
+
+    def decide_next_action(self, goal, image_data):
+        return None
+
+
 def test_orchestrator_creation() -> None:
 
     operator = OpenOperator(
         perception=ScreenshotEngine(),
         controller=MockController(),
-        brain=DummyAgent(),
+        brain=MockAgent(),
     )
 
     assert operator is not None
