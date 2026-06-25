@@ -110,12 +110,20 @@ class TaskRunner:
                         
                     logger.debug("Capturing screen for verification...")
                     image_bytes = self.screenshot.capture_screen()
+                    
+                    # Indentation was broken here previously
                     if not image_bytes:
                         logger.error("Screen capture failed during verification.")
                         return False
 
                     logger.debug("Extracting OCR text...")
                     screen_text = self.ocr.extract_text(image_bytes)
+
+                    logger.warning("=" * 60)
+                    logger.warning("OCR OUTPUT:")
+                    logger.warning(screen_text)
+                    logger.warning("=" * 60)
+
                     if not screen_text:
                         logger.error("OCR extraction failed during verification.")
                         return False
