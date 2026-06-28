@@ -1,8 +1,11 @@
 import logging
 import time
+from typing import Optional
 
 from openoperator.action.base import ActionController
+from openoperator.action.window_controller import WindowController
 from openoperator.agent.base import AgentBrain
+from openoperator.agent.visual_stasis_detector import VisualStasisDetector
 from openoperator.core.models import ActionIntent
 from openoperator.perception.base import PerceptionEngine
 
@@ -22,10 +25,15 @@ class OpenOperator:
         perception: PerceptionEngine,
         controller: ActionController,
         brain: AgentBrain,
+        window_controller: Optional[WindowController] = None,
     ) -> None:
         self.perception = perception
         self.controller = controller
         self.brain = brain
+        # Inject the new native Windows controller
+        self.window_controller = window_controller or WindowController()
+        # Initialize the Stasis Detector (Issue #67)
+        self.stasis_detector = VisualStasisDetector(max_history=3)
 
     def execute_task(self, goal: str, max_steps: int = 20) -> bool:
         """
@@ -42,12 +50,24 @@ class OpenOperator:
         logger.info(f"Starting execution for goal: '{goal}'")
         logger.debug(f"Max steps configured: {max_steps}")
 
+        # Reset stasis history before starting a new task
+        self.stasis_detector.clear()
+
         for step in range(1, max_steps + 1):
             logger.info(f"--- Step {step}/{max_steps} ---")
             
             try:
                 logger.debug("Capturing screen state...")
                 image_data = self.perception.capture_screen()
+
+                # Generate a string representation of the screen for stasis detection
+                # Converts image bytes to a hash to quickly detect completely static screens
+                obs_rep = str(hash(image_data.tobytes())) if hasattr(image_data, "tobytes") else str(image_data)
+                self.stasis_detector.add_observation(obs_rep)
+
+                if self.stasis_detector.is_in_stasis():
+                    logger.error("Visual Stasis Detected! The agent is stuck in a loop. Aborting task.")
+                    return False
 
                 logger.debug("Querying agent brain for next action...")
                 intent = self.brain.decide_next_action(goal, image_data)
@@ -109,6 +129,15 @@ class OpenOperator:
                 self.controller.move_mouse(x, y)
             else:
                 logger.error("Action intent specified 'move' but no coordinates were provided.")
+
+        elif action in ("focus", "switch_window"):
+            if intent.input_text:
+                logger.debug(f"Attempting to focus window matching: '{intent.input_text}'")
+                success = self.window_controller.focus_window_by_title(intent.input_text)
+                if not success:
+                    logger.warning(f"Could not find or focus window matching '{intent.input_text}'.")
+            else:
+                logger.error("Action intent specified window focus but no input_text (title) was provided.")
 
         elif action == "wait":
             logger.debug("Agent requested a wait action. Sleeping for 3 seconds.")
