@@ -4,13 +4,15 @@ Text locator module for OpenOperator.
 Provides spatial OCR mapping to detect screen coordinates of UI elements.
 Upgraded to handle multi-word phrases, OCR token merging/splitting, and 
 spacing differences using a sliding window aggregator and standard library fuzzy matching.
+Includes built-in Retry Strategy for self-healing UI perception.
 """
 
 import difflib
 import io
 import logging
 import re
-from typing import Any, Dict, List, Tuple
+import time
+from typing import Any, Callable, Dict, List, Tuple
 
 import pytesseract
 from PIL import Image, UnidentifiedImageError
@@ -37,6 +39,54 @@ class TextLocatorEngine:
     Features robust text normalization and N-gram sliding windows to counteract 
     OCR tokenization errors without requiring external fuzzy matching libraries.
     """
+
+    def find_text_targets_with_retry(
+        self, 
+        image_provider: Callable[[], bytes], 
+        search_text: str, 
+        max_attempts: int = 3,
+        retry_delay: float = 1.0,
+        exact_match: bool = False,
+        fuzzy_threshold: float = 0.85
+    ) -> List[UITarget]:
+        """
+        Self-healing UI locator. Retries searching if the element is not found
+        due to UI load times or transitory screen states.
+
+        Args:
+            image_provider (Callable): Function that returns the latest screen capture bytes.
+            search_text (str): The target phrase to locate.
+            max_attempts (int): Maximum number of OCR attempts.
+            retry_delay (float): Seconds to wait between attempts.
+            exact_match (bool): If True, requires exact string match.
+            fuzzy_threshold (float): Minimum difflib ratio to accept a fuzzy match.
+            
+        Returns:
+            List[UITarget]: Detected targets, or empty list if ultimately not found.
+        """
+        for attempt in range(max_attempts):
+            logger.info(f"Vision search attempt {attempt + 1}/{max_attempts} for '{search_text}'")
+            
+            # Capture latest screen state dynamically for this attempt
+            current_image_bytes = image_provider()
+            
+            targets = self.find_text_targets(
+                image_bytes=current_image_bytes, 
+                search_text=search_text,
+                exact_match=exact_match,
+                fuzzy_threshold=fuzzy_threshold
+            )
+            
+            if targets:
+                logger.info(f"Target '{search_text}' found on attempt {attempt + 1}.")
+                return targets
+            
+            if attempt < max_attempts - 1:
+                logger.warning(f"Target '{search_text}' not found. Retrying in {retry_delay}s...")
+                time.sleep(retry_delay)
+                
+        logger.error(f"Failed to locate '{search_text}' after {max_attempts} attempts.")
+        return []
 
     def find_text_targets(
         self, 
