@@ -1,32 +1,64 @@
-from unittest.mock import patch
+"""
+Tests for Active Window Detection across platforms.
+Verifies the WindowController Factory and OS-specific implementations.
+"""
 
-from openoperator.action.window_controller import WindowController
+import pytest
+from unittest.mock import patch, MagicMock
+from openoperator.action.window_controller import (
+    WindowController,
+    WindowsWindowController,
+    LinuxWindowController,
+    MacOSWindowController
+)
 
+def test_factory_returns_windows_controller_on_win32():
+    """Test that the Factory returns the Windows implementation on Windows."""
+    with patch("sys.platform", "win32"):
+        controller = WindowController()
+        assert isinstance(controller, WindowsWindowController)
 
-def test_get_active_window_title_exists():
-    controller = WindowController()
-
-    assert hasattr(controller, "get_active_window_title")
-
-
-def test_returns_none_when_not_windows():
-    controller = WindowController()
-
+def test_factory_returns_linux_controller_on_linux():
+    """Test that the Factory returns the Linux implementation on Linux."""
     with patch("sys.platform", "linux"):
-        result = controller.get_active_window_title()
+        controller = WindowController()
+        assert isinstance(controller, LinuxWindowController)
 
-    assert result is None
+def test_factory_returns_mac_controller_on_darwin():
+    """Test that the Factory returns the MacOS implementation on Darwin."""
+    with patch("sys.platform", "darwin"):
+        controller = WindowController()
+        assert isinstance(controller, MacOSWindowController)
 
+def test_linux_get_active_window_title_is_none():
+    """Test that the Linux stub safely returns None."""
+    controller = LinuxWindowController()
+    assert controller.get_active_window_title() is None
 
-def test_returns_string_or_none():
-    controller = WindowController()
+def test_mac_get_active_window_title_is_none():
+    """Test that the Mac stub safely returns None."""
+    controller = MacOSWindowController()
+    assert controller.get_active_window_title() is None
 
-    result = controller.get_active_window_title()
+def test_windows_get_active_window_title_handles_no_window():
+    """Test Windows controller gracefully handles when no window is foreground."""
+    controller = WindowsWindowController()
+    with patch("ctypes.windll.user32.GetForegroundWindow", return_value=0):
+        assert controller.get_active_window_title() is None
 
-    assert result is None or isinstance(result, str)
-
-
-def test_backward_compatibility():
-    controller = WindowController()
-
-    assert hasattr(controller, "focus_window_by_title")
+def test_windows_get_active_window_title_success():
+    """Test Windows controller correctly retrieves window title."""
+    controller = WindowsWindowController()
+    
+    with patch("ctypes.windll.user32.GetForegroundWindow", return_value=12345), \
+         patch("ctypes.windll.user32.GetWindowTextLengthW", return_value=11), \
+         patch("ctypes.windll.user32.GetWindowTextW") as mock_get_text:
+        
+        # Mocking ctypes buffer injection
+        def side_effect(hwnd, buffer, length):
+            buffer.value = "Test Window"
+            return 11
+        
+        mock_get_text.side_effect = side_effect
+        
+        assert controller.get_active_window_title() == "Test Window"
