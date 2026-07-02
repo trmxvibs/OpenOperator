@@ -1,0 +1,2 @@
+# Run the tests to verify the acceptance criteria
+python -m unittest tests/unit/test_autonomous_agent_orchestrator.py
